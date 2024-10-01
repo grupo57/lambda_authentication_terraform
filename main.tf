@@ -3,8 +3,13 @@ provider "aws" {
 }
 
 variable "environment" {
-  description = "The environment to deploy (dev or prod)"
+  description = "The environment to deploy (dev ou prod)"
   type        = string
+}
+
+# Data source para verificar roles existentes
+data "aws_iam_role" "existing_role" {
+  name = "lambda_exec_role_${var.environment}"
 }
 
 # Função Lambda
@@ -12,7 +17,7 @@ resource "aws_lambda_function" "auth_function" {
   function_name    = "lambda_authentication_${var.environment}"
   handler          = "br.com.techchallenge.lambda.creator.LambdaJwtCreatorHandler::handleRequest"
   runtime          = "java11"
-  role             = aws_iam_role.lambda_exec_role.arn
+  role             = data.aws_iam_role.existing_role.arn
   filename         = "LambdaJwtCreator-6.0.0.jar"  # Especifica o arquivo JAR
   source_code_hash = filebase64sha256("LambdaJwtCreator-6.0.0.jar")
 
@@ -21,11 +26,6 @@ resource "aws_lambda_function" "auth_function" {
       ENV = var.environment
     }
   }
-}
-
-# Data source para verificar roles existentes
-data "aws_iam_role" "existing_role" {
-  name = "lambda_exec_role_${var.environment}"
 }
 
 # Role IAM para a função Lambda
@@ -51,7 +51,7 @@ resource "aws_iam_role" "lambda_exec_role" {
   lifecycle {
     prevent_destroy = true
     ignore_changes = [
-      "assume_role_policy"
+      assume_role_policy
     ]
   }
 }
@@ -60,6 +60,6 @@ resource "aws_iam_role" "lambda_exec_role" {
 resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   count = data.aws_iam_role.existing_role.name != "" ? 0 : 1
 
-  role       = aws_iam_role.lambda_exec_role.name
+  role       = aws_iam_role.lambda_exec_role[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
