@@ -7,27 +7,13 @@ variable "environment" {
   type        = string
 }
 
-# Criação do bucket S3
-resource "aws_s3_bucket" "lambda_bucket" {
-  bucket = "lambda-authentication-${var.environment}"
-}
-
-# Upload do arquivo JAR para o bucket S3
-resource "aws_s3_object" "lambda_jar" {
-  bucket = aws_s3_bucket.lambda_bucket.bucket
-  key    = "LambdaJwtCreator-6.0.0.jar"
-  source = "LambdaJwtCreator-6.0.0.jar"
-  etag   = filemd5("LambdaJwtCreator-6.0.0.jar")
-}
-
 # Função Lambda
 resource "aws_lambda_function" "auth_function" {
   function_name    = "lambda_authentication_${var.environment}"
-  handler          = "com.example.Handler"
+  handler          = "br.com.techchallenge.lambda.creator.LambdaJwtCreatorHandler::handleRequest"
   runtime          = "java11"
   role             = aws_iam_role.lambda_exec_role.arn
-  s3_bucket        = aws_s3_bucket.lambda_bucket.bucket
-  s3_key           = aws_s3_object.lambda_jar.key
+  filename         = "LambdaJwtCreator-6.0.0.jar"  # Especifica o arquivo JAR
   source_code_hash = filebase64sha256("LambdaJwtCreator-6.0.0.jar")
 
   environment {
