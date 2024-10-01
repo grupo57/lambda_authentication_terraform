@@ -22,12 +22,12 @@ resource "aws_s3_object" "lambda_jar" {
 
 # Função Lambda
 resource "aws_lambda_function" "auth_function" {
-  function_name = "lambda_authentication_${var.environment}"
-  handler       = "com.example.Handler"
-  runtime       = "java11"
-  role          = aws_iam_role.lambda_exec_role.arn
-  s3_bucket     = aws_s3_bucket.lambda_bucket.bucket
-  s3_key        = aws_s3_object.lambda_jar.key
+  function_name    = "lambda_authentication_${var.environment}"
+  handler          = "com.example.Handler"
+  runtime          = "java11"
+  role             = aws_iam_role.lambda_exec_role.arn
+  s3_bucket        = aws_s3_bucket.lambda_bucket.bucket
+  s3_key           = aws_s3_object.lambda_jar.key
   source_code_hash = filebase64sha256("LambdaJwtCreator-6.0.0.jar")
 
   environment {
