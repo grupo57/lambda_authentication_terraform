@@ -1,4 +1,4 @@
-name: Deploy Lambda Authentication
+name: Check Lambda Authentication
 
 on:
   pull_request:
@@ -33,4 +33,4 @@ jobs:
     - name: Notify Success
       if: success()
       
-      run: echo "Deployment successful!"
+      run: echo "Check successful!"
