@@ -23,8 +23,15 @@ resource "aws_lambda_function" "auth_function" {
   }
 }
 
+# Data source para verificar roles existentes
+data "aws_iam_role" "existing_role" {
+  name = "lambda_exec_role_${var.environment}"
+}
+
 # Role IAM para a função Lambda
 resource "aws_iam_role" "lambda_exec_role" {
+  count = data.aws_iam_role.existing_role.name != "" ? 0 : 1
+
   name = "lambda_exec_role_${var.environment}"
 
   assume_role_policy = jsonencode({
@@ -44,13 +51,15 @@ resource "aws_iam_role" "lambda_exec_role" {
   lifecycle {
     prevent_destroy = true
     ignore_changes = [
-      name
+      "assume_role_policy"
     ]
   }
 }
 
 # Anexar política à role IAM
 resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  count = data.aws_iam_role.existing_role.name != "" ? 0 : 1
+
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
