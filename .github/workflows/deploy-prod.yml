@@ -1,13 +1,12 @@
-name: Deploy Lambda Authentication
+name: Deploy Lambda Authentication in Prod
 
 on:
-  pull_request:
+  push:
     branches:
-      - dev
       - main
 
 jobs:
-  check:
+  deploy-prod:
     runs-on: ubuntu-latest
 
     env:
@@ -28,9 +27,12 @@ jobs:
       run: terraform validate
 
     - name: Plan Terraform
-      run: terraform plan -out=tfplan -var="environment=${{ github.ref == 'refs/heads/dev' && 'dev' || 'prod' }}"
+      run: terraform plan -out=tfplan -var="environment=prod"
+
+    - name: Apply Terraform for Prod
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve tfplan
 
     - name: Notify Success
       if: success()
-      
       run: echo "Deployment successful!"
